@@ -1,3 +1,5 @@
+-- TODO: Create user
+
 -- TODO: Taglista tábla
 -- TODO: Státusz, jogosultság tábla 
 -- TODO: History taglista és Státusz,jogosultság táblához
