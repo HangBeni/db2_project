@@ -130,6 +130,12 @@ CREATE TABLE GATHERING_HIS (
 -- TODO: Megbeszélés tábla
 
 -- TODO: Megbeszélés szerkesztési history
+CREATE TABLE MEETING_HIS (
+    LOG_ID NUMBER PRIMARY KEY,
+    CHANGED_ID NUMBER NOT NULL,
+    AUTHOR_ID NUMBER NOT NULL,
+    TR_TIME TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 -- TODO: Programlista tábla
 -- TODO: Feladatlista tábla
