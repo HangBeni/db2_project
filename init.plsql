@@ -86,7 +86,7 @@ CREATE TABLE ADDRESS (
 -- TODO: Raj tábla
 CREATE TABLE patrol (
     patrol_id NUMBER PRIMARY KEY,
-    name VARCHAR(100) NOT NULL
+    patrol_name VARCHAR2(100) NOT NULL
 );
 -- TODO: Státusz, jogosultság tábla
 CREATE TABLE rank_privileges (
@@ -101,14 +101,28 @@ CREATE TABLE rank_dictionary (
 -- TODO: History Státusz,jogosultság táblához
 CREATE TABLE RANK_PRIVILEGES_HIS (
     CHANGE_ID NUMBER PRIMARY KEY,
-    SUBJECT_ID NUMBER NOT NULL,
     LOG_MSSG TEXT NOT NULL,
-    tr_time TIMESTAMP NOT NULL
+    tr_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 -- TODO: Gyűlésjelentések tábla
--- TODO: Gyűlésjelentések History
+CREATE TABLE MEETING_REPORTS (
+    REPORT_ID NUMBER PRIMARY KEY,
+    REPORT_CONTENT CLOB NOT NULL,
+    AUTHOR_ID NUMBER NOT NULL,
+    GROUP_ID NUMBER NOT NULL,
+);
+-- FOREIGN KEY (AUTHOR_ID) REFERENCES MEMBERS(MEMBER_ID),
+-- FOREIGN KEY (GROUP_ID) REFERENCES GROUPS(GROUP_ID)
 
+-- TODO: Gyűlésjelentések History
+CREATE TABLE Meeting_HIS (
+    CHANGE_ID NUMBER PRIMARY KEY,
+    Changer_ID NUMBER NOT NULL
+    LOG_MSSG VARCHAR2(4000) NOT NULL,
+    TR_TIME TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 -- TODO: Megbeszélés tábla
+
 -- TODO: Megbeszélés szerkesztési history
 
 -- TODO: Programlista tábla
