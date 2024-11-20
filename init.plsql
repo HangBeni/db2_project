@@ -75,7 +75,13 @@ CREATE TABLE ADDRESS (
 );
 
 -- TODO: Őrs tábla
-    
+    CREATE TABLE ORS (
+    ORS_ID NUMBER PRIMARY KEY,
+    NAME VARCHAR(255) NOT NULL,
+    PATROL_ID NUMBER NOT NULL,
+);
+
+-- FOREIGN KEY (patrol_id) REFERENCES patrol (patrol_id)
 -- TODO: Raj tábla
 
 -- TODO: Státusz, jogosultság tábla
