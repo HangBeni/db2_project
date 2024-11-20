@@ -77,7 +77,7 @@ CREATE TABLE ADDRESS (
 -- TODO: Őrs tábla
     CREATE TABLE ORS (
     ORS_ID NUMBER PRIMARY KEY,
-    NAME VARCHAR(255) NOT NULL,
+    NAME VARCHAR(100) NOT NULL,
     PATROL_ID NUMBER NOT NULL,
 );
 
@@ -85,9 +85,18 @@ CREATE TABLE ADDRESS (
 -- TODO: Raj tábla
 CREATE TABLE patrol (
     patrol_id NUMBER PRIMARY KEY,
-    name VARCHAR(255) NOT NULL
+    name VARCHAR(100) NOT NULL
 );
 -- TODO: Státusz, jogosultság tábla
+CREATE TABLE rank_privileges (
+    status_id NUMBER PRIMARY KEY,
+    member_id NUMBER NOT NULL,
+    rank_id NUMBER NOT NULL
+);
+CREATE TABLE rank_dictionary (
+    rank_id NUMBER PRIMARY KEY,
+    rank_name VARCHAR(50)
+);
 -- TODO: History taglista és Státusz,jogosultság táblához
 
 -- TODO: Gyűlésjelentések tábla
