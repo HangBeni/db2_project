@@ -83,7 +83,10 @@ CREATE TABLE ADDRESS (
 
 -- FOREIGN KEY (patrol_id) REFERENCES patrol (patrol_id)
 -- TODO: Raj tábla
-
+CREATE TABLE patrol (
+    patrol_id NUMBER PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);
 -- TODO: Státusz, jogosultság tábla
 -- TODO: History taglista és Státusz,jogosultság táblához
 
