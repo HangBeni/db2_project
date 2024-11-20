@@ -61,8 +61,9 @@ CREATE TABLE MEMBERS (
 
 -- TODO: CONSTRAINTS FOR THE TABLE (address, ors, patrol)
 
+-- TODO: History taglista táblához
+
 -- TODO: Levelezési cim tábla
--- Create a new relational table with 3 columns
 
 CREATE TABLE ADDRESS (
     ADDRESS_ID NUMBER PRIMARY KEY,
@@ -95,10 +96,15 @@ CREATE TABLE rank_privileges (
 );
 CREATE TABLE rank_dictionary (
     rank_id NUMBER PRIMARY KEY,
-    rank_name VARCHAR(50)
+    rank_name VARCHAR(50) NOT NULL
 );
--- TODO: History taglista és Státusz,jogosultság táblához
-
+-- TODO: History Státusz,jogosultság táblához
+CREATE TABLE RANK_PRIVILEGES_HIS (
+    CHANGE_ID NUMBER PRIMARY KEY,
+    SUBJECT_ID NUMBER NOT NULL,
+    LOG_MSSG TEXT NOT NULL,
+    tr_time TIMESTAMP NOT NULL
+);
 -- TODO: Gyűlésjelentések tábla
 -- TODO: Gyűlésjelentések History
 
