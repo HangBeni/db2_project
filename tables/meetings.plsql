@@ -3,7 +3,7 @@ CREATE TABLE MEETING (
     MEETING_CONTENT CLOB NOT NULL,
     AUTHOR_ID NUMBER NOT NULL,
     EVENT_ID NUMBER NOT NULL,
-    CREATE_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT MEETING_EVENT_FK FOREIGN KEY (EVENT_ID) REFERENCES EVENTS(EVENT_ID),
     CONSTRAINT MEETING_AUTHOR_FK FOREIGN KEY (AUTHOR_ID) REFERENCES MEMBERS(MEMBER_ID)
 );
@@ -14,3 +14,40 @@ CREATE TABLE MEETING_HIS (
     LOG_MSSG VARCHAR2(4000) NOT NULL,
     TR_TIME TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- /* New meeting from xml
+CREATE OR REPLACE PROCEDURE NEW_MEETING_FROM_XML (
+    P_MEETING_XML CLOB
+) AS
+    V_MEETING_CONTENT CLOB;
+    V_AUTHOR_ID       NUMBER;
+    V_EVENT_ID        NUMBER;
+BEGIN
+ 
+    -- Extract meeting content, author, and event from XML using XMLTABLE
+    SELECT EXTRACTVALUE(XMLTYPE(P_MEETING_XML), '/meeting/content'),
+        EXTRACTVALUE(XMLTYPE(P_MEETING_XML), '/meeting/author_id'),
+        EXTRACTVALUE(XMLTYPE(P_MEETING_XML), '/meeting/event_id') INTO V_MEETING_CONTENT,
+        V_AUTHOR_ID,
+        V_EVENT_ID
+    FROM DUAL;
+ 
+    -- Insert the extracted content into the MEETING table
+    INSERT INTO MEETING (
+        MEETING_CONTENT,
+        AUTHOR_ID,
+        EVENT_ID
+    ) VALUES (
+        V_MEETING_CONTENT,
+        V_AUTHOR_ID,
+        V_EVENT_ID
+    );
+END;
+/
+-- /* New meeting from uploaded file
+
+-- /* Edit meeting content
+
+-- /* Delete meeting by id
+
+-- /* Get meeting by id/author/event*/
