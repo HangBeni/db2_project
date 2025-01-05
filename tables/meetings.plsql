@@ -23,7 +23,6 @@ CREATE OR REPLACE PROCEDURE NEW_MEETING_FROM_XML (
     V_AUTHOR_ID       NUMBER;
     V_EVENT_ID        NUMBER;
 BEGIN
- 
     SELECT EXTRACTVALUE(XMLTYPE(P_MEETING_XML), '/meeting/content'),
         EXTRACTVALUE(XMLTYPE(P_MEETING_XML), '/meeting/author_id'),
         EXTRACTVALUE(XMLTYPE(P_MEETING_XML), '/meeting/event_id') INTO V_MEETING_CONTENT,
@@ -35,7 +34,6 @@ BEGIN
     IF V_MEETING_CONTENT IS NULL OR V_AUTHOR_ID IS NULL OR V_EVENT_ID IS NULL THEN
         RAISE EXCEPTIONS_PKG.INVALID_FORMAT;
     END IF;
- 
 
     INSERT INTO MEETING (
         MEETING_CONTENT,
@@ -58,9 +56,28 @@ EXCEPTION
 END;
 /
 
--- /* New meeting from uploaded file
+-- /* Edit meeting content by id
+CREATE OR REPLACE PROCEDURE EDIT_MEETING_CONTENT_BY_ID (
+    P_MEETING_ID NUMBER,
+    P_NEW_CONTENT CLOB
+) AS
+BEGIN
+    UPDATE MEETING
+    SET
+        MEETING_CONTENT = P_NEW_CONTENT
+    WHERE
+        MEETING_ID = P_MEETING_ID;
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-21000, 'Meeting ID not found');
+    END IF;
 
--- /* Edit meeting content
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM);
+END;
+/
 
 -- /* Delete meeting by id
 
