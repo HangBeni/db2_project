@@ -10,6 +10,10 @@ CREATE OR REPLACE PACKAGE ADDRESS_PKG AS
         P_HOUSE_NUMBER IN VARCHAR2
     );
 
+    PROCEDURE INSERT_ADDRESS (
+        P_ADDRESS IN ADDRESS%ROWTYPE
+    );
+
     FUNCTION GET_ADDRESS_BY_ID (
         P_ADDRESS_ID IN NUMBER
     ) RETURN ADDRESS%ROWTYPE;
@@ -63,6 +67,35 @@ CREATE OR REPLACE PACKAGE BODY ADDRESS_PKG AS
             P_STREET_NAME,
             P_STREET_TYPE,
             P_HOUSE_NUMBER
+        );
+        COMMIT;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('No rows inserted.');
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM);
+    END INSERT_ADDRESS;
+
+    PROCEDURE INSERT_ADDRESS (
+        P_ADDRESS IN ADDRESS%ROWTYPE
+    ) AS
+    BEGIN
+        INSERT INTO ADDRESS (
+            MEMBER_ID,
+            ZIP_CODE,
+            COUNTRY,
+            CITY,
+            STREET_NAME,
+            STREET_TYPE,
+            HOUSE_NUMBER
+        ) VALUES (
+            P_ADDRESS.MEMBER_ID,
+            P_ADDRESS.ZIP_CODE,
+            P_ADDRESS.COUNTRY,
+            P_ADDRESS.CITY,
+            P_ADDRESS.STREET_NAME,
+            P_ADDRESS.STREET_TYPE,
+            P_ADDRESS.HOUSE_NUMBER
         );
         COMMIT;
     EXCEPTION
