@@ -24,7 +24,6 @@ CREATE OR REPLACE PROCEDURE NEW_MEETING_FROM_XML (
     V_EVENT_ID        NUMBER;
 BEGIN
  
-    -- Extract meeting content, author, and event from XML using XMLTABLE
     SELECT EXTRACTVALUE(XMLTYPE(P_MEETING_XML), '/meeting/content'),
         EXTRACTVALUE(XMLTYPE(P_MEETING_XML), '/meeting/author_id'),
         EXTRACTVALUE(XMLTYPE(P_MEETING_XML), '/meeting/event_id') INTO V_MEETING_CONTENT,
@@ -32,7 +31,12 @@ BEGIN
         V_EVENT_ID
     FROM DUAL;
  
-    -- Insert the extracted content into the MEETING table
+    -- Error checking
+    IF V_MEETING_CONTENT IS NULL OR V_AUTHOR_ID IS NULL OR V_EVENT_ID IS NULL THEN
+        RAISE EXCEPTIONS_PKG.INVALID_FORMAT;
+    END IF;
+ 
+
     INSERT INTO MEETING (
         MEETING_CONTENT,
         AUTHOR_ID,
@@ -42,8 +46,18 @@ BEGIN
         V_AUTHOR_ID,
         V_EVENT_ID
     );
+    COMMIT;
+EXCEPTION
+    WHEN EXCEPTIONS_PKG.INVALID_FORMAT THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Invalid format, file must contain meeting content, author, and event');
+        DBMS_OUTPUT.PUT_LINE(' Invalid XML: ' || P_MEETING_XML);
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE(-21000, 'An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM);
 END;
 /
+
 -- /* New meeting from uploaded file
 
 -- /* Edit meeting content
