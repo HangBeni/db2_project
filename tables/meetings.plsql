@@ -78,7 +78,24 @@ EXCEPTION
         DBMS_OUTPUT.PUT_LINE('An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM);
 END;
 /
-
 -- /* Delete meeting by id
+CREATE OR REPLACE PROCEDURE DELETE_MEETING_BY_ID (
+    P_MEETING_ID NUMBER
+) AS
+BEGIN
+    DELETE FROM MEETING
+    WHERE MEETING_ID = P_MEETING_ID;
+    
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-21000, 'Meeting ID not found');
+    END IF;
+
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM);
+END;
+/
 
 -- /* Get meeting by id/author/event*/
