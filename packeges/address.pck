@@ -1,0 +1,154 @@
+CREATE OR REPLACE PACKAGE ADDRESS_PKG AS
+
+    PROCEDURE INSERT_ADDRESS (
+        P_MEMBER_ID IN NUMBER,
+        P_ZIP_CODE IN VARCHAR2,
+        P_COUNTRY IN VARCHAR2,
+        P_CITY IN VARCHAR2,
+        P_STREET_NAME IN VARCHAR2,
+        P_STREET_TYPE IN VARCHAR2,
+        P_HOUSE_NUMBER IN VARCHAR2
+    );
+
+    FUNCTION GET_ADDRESS_BY_ID (
+        P_ADDRESS_ID IN NUMBER
+    ) RETURN ADDRESS%ROWTYPE;
+
+    FUNCTION GET_ADDRESS_BY_RESIDENT (
+        P_MEMBER_ID IN NUMBER
+    ) RETURN ADDRESS%ROWTYPE;
+
+    PROCEDURE UPDATE_ADDRESS (
+        P_ADDRESS_ID IN NUMBER,
+        P_MEMBER_ID IN NUMBER,
+        P_ZIP_CODE IN VARCHAR2,
+        P_COUNTRY IN VARCHAR2,
+        P_CITY IN VARCHAR2,
+        P_STREET_NAME IN VARCHAR2,
+        P_STREET_TYPE IN VARCHAR2,
+        P_HOUSE_NUMBER IN VARCHAR2
+    );
+
+    PROCEDURE DELETE_ADDRESS (
+        P_ADDRESS_ID IN NUMBER
+    );
+END ADDRESS_PKG;
+/
+
+CREATE OR REPLACE PACKAGE BODY ADDRESS_PKG AS
+
+    PROCEDURE INSERT_ADDRESS (
+        P_MEMBER_ID IN NUMBER,
+        P_ZIP_CODE IN VARCHAR2,
+        P_COUNTRY IN VARCHAR2,
+        P_CITY IN VARCHAR2,
+        P_STREET_NAME IN VARCHAR2,
+        P_STREET_TYPE IN VARCHAR2,
+        P_HOUSE_NUMBER IN VARCHAR2
+    ) AS
+    BEGIN
+        INSERT INTO ADDRESS (
+            MEMBER_ID,
+            ZIP_CODE,
+            COUNTRY,
+            CITY,
+            STREET_NAME,
+            STREET_TYPE,
+            HOUSE_NUMBER
+        ) VALUES (
+            P_MEMBER_ID,
+            P_ZIP_CODE,
+            P_COUNTRY,
+            P_CITY,
+            P_STREET_NAME,
+            P_STREET_TYPE,
+            P_HOUSE_NUMBER
+        );
+        COMMIT;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('No rows inserted.');
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM);
+    END INSERT_ADDRESS;
+
+    FUNCTION GET_ADDRESS_BY_ID (
+        P_ADDRESS_ID IN NUMBER
+    ) RETURN ADDRESS%ROWTYPE AS
+        V_ADDRESS ADDRESS%ROWTYPE;
+    BEGIN
+        SELECT * INTO V_ADDRESS
+        FROM ADDRESS
+        WHERE ADDRESS_ID = P_ADDRESS_ID;
+        RETURN V_ADDRESS;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('No rows found.');
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM);
+    END GET_ADDRESS_BY_ID;
+
+    FUNCTION GET_ADDRESS_BY_RESIDENT (
+        P_MEMBER_ID IN NUMBER
+    ) RETURN ADDRESS%ROWTYPE AS
+        V_ADDRESS ADDRESS%ROWTYPE;
+    BEGIN
+        SELECT * INTO V_ADDRESS
+        FROM ADDRESS
+        WHERE MEMBER_ID = P_MEMBER_ID;
+        RETURN V_ADDRESS;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('No rows found.');
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM);
+    END GET_ADDRESS_BY_RESIDENT;
+
+    PROCEDURE UPDATE_ADDRESS (
+        P_ADDRESS_ID IN NUMBER,
+        P_MEMBER_ID IN NUMBER,
+        P_ZIP_CODE IN VARCHAR2,
+        P_COUNTRY IN VARCHAR2,
+        P_CITY IN VARCHAR2,
+        P_STREET_NAME IN VARCHAR2,
+        P_STREET_TYPE IN VARCHAR2,
+        P_HOUSE_NUMBER IN VARCHAR2
+    ) AS
+    BEGIN
+        UPDATE ADDRESS
+        SET
+            MEMBER_ID = P_MEMBER_ID,
+            ZIP_CODE = P_ZIP_CODE,
+            COUNTRY = P_COUNTRY,
+            CITY = P_CITY,
+            STREET_NAME = P_STREET_NAME,
+            STREET_TYPE = P_STREET_TYPE,
+            HOUSE_NUMBER = P_HOUSE_NUMBER
+        WHERE
+            ADDRESS_ID = P_ADDRESS_ID;
+        COMMIT;
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            DBMS_OUTPUT.PUT_LINE('An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM);
+    END UPDATE_ADDRESS;
+
+    PROCEDURE DELETE_ADDRESS (
+        P_ADDRESS_ID IN NUMBER
+    ) AS
+    BEGIN
+        DELETE FROM ADDRESS
+        WHERE
+            ADDRESS_ID = P_ADDRESS_ID;
+        IF SQL%ROWCOUNT = 0 THEN
+            RAISE_APPLICATION_ERROR(-20001, 'No address found with the given ID.');
+        END IF;
+
+        COMMIT;
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            DBMS_OUTPUT.PUT_LINE('An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM);
+    END DELETE_ADDRESS;
+END ADDRESS_PKG;
+/
