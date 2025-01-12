@@ -19,13 +19,18 @@ CREATE OR REPLACE PACKAGE MEETING_PKG AS
 
     PROCEDURE GET_MEETINGS_BY_AUTHOR (
         P_AUTHOR_ID NUMBER,
-        P_MEETINGS OUT SYS_REFCURSOR
+        P_MEETINGS OUT T_MEETING_TY
     );
 
     PROCEDURE GET_MEETINGS_BY_EVENT (
         P_EVENT_ID NUMBER,
-        P_MEETINGS OUT SYS_REFCURSOR
+        P_MEETINGS OUT T_MEETING_TY
     );
+
+    FUNCTION GET_MEETINGS_BETWEEN (
+        P_START_DATE IN DATE,
+        P_END_DATE IN DATE
+    ) RETURN T_MEETING_TY;
 END MEETING_PKG;
 /
 
@@ -39,13 +44,12 @@ CREATE OR REPLACE PACKAGE BODY MEETING_PKG AS
         V_AUTHOR_ID       NUMBER;
         V_EVENT_ID        NUMBER;
     BEGIN
-        SELECT EXTRACTVALUE(XMLTYPE(P_MEETING_XML), '/meeting/content'),
-            EXTRACTVALUE(XMLTYPE(P_MEETING_XML), '/meeting/author_id'),
-            EXTRACTVALUE(XMLTYPE(P_MEETING_XML), '/meeting/event_id') INTO V_MEETING_CONTENT,
+        SELECT EXTRACTVALUE ( XMLTYPE ( P_MEETING_XML ) , '/meeting/content' ),
+            EXTRACTVALUE ( XMLTYPE ( P_MEETING_XML ) , '/meeting/author_id' ),
+            EXTRACTVALUE ( XMLTYPE ( P_MEETING_XML ) , '/meeting/event_id' ) INTO V_MEETING_CONTENT,
             V_AUTHOR_ID,
             V_EVENT_ID
         FROM DUAL;
- 
         IF V_MEETING_CONTENT IS NULL OR V_AUTHOR_ID IS NULL OR V_EVENT_ID IS NULL THEN
             RAISE EXCEPTIONS_PKG.INVALID_FORMAT_EXC;
         END IF;
@@ -63,11 +67,11 @@ CREATE OR REPLACE PACKAGE BODY MEETING_PKG AS
     EXCEPTION
         WHEN EXCEPTIONS_PKG.INVALID_FORMAT_EXC THEN
             ROLLBACK;
-            DBMS_OUTPUT.PUT_LINE('Invalid format, file must contain meeting content, author, and event');
-            DBMS_OUTPUT.PUT_LINE(' Invalid XML: ' || P_MEETING_XML);
+            DBMS_OUTPUT.PUT_LINE ( 'Invalid format, file must contain meeting content, author, and event' );
+            DBMS_OUTPUT.PUT_LINE ( ' Invalid XML: ' || P_MEETING_XML );
         WHEN OTHERS THEN
             ROLLBACK;
-            DBMS_OUTPUT.PUT_LINE('An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE ( 'An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM );
     END NEW_MEETING_FROM_XML;
  
 
@@ -83,14 +87,14 @@ CREATE OR REPLACE PACKAGE BODY MEETING_PKG AS
         WHERE
             MEETING_ID = P_MEETING_ID;
         IF SQL%ROWCOUNT = 0 THEN
-            RAISE_APPLICATION_ERROR(-21000, 'Meeting ID not found');
+            RAISE_APPLICATION_ERROR ( -21000, 'Meeting ID not found' );
         END IF;
 
         COMMIT;
     EXCEPTION
         WHEN OTHERS THEN
             ROLLBACK;
-            DBMS_OUTPUT.PUT_LINE('An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE ( 'An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM );
     END EDIT_MEETING_CONTENT_BY_ID;
  
 
@@ -104,14 +108,14 @@ CREATE OR REPLACE PACKAGE BODY MEETING_PKG AS
             MEETING_ID = P_MEETING_ID;
         IF SQL%ROWCOUNT = 0 THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-21000, 'Meeting ID not found');
+            RAISE_APPLICATION_ERROR ( -21000, 'Meeting ID not found' );
         END IF;
 
         COMMIT;
     EXCEPTION
         WHEN OTHERS THEN
             ROLLBACK;
-            DBMS_OUTPUT.PUT_LINE('An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE ( 'An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM );
     END DELETE_MEETING_BY_ID;
  
 
@@ -126,47 +130,68 @@ CREATE OR REPLACE PACKAGE BODY MEETING_PKG AS
         WHERE MEETING_ID = P_MEETING_ID;
         IF SQL%NOTFOUND THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-21000, 'Meeting ID not found');
+            RAISE_APPLICATION_ERROR ( -21000, 'Meeting ID not found' );
         END IF;
 
         RETURN V_MEETING;
     EXCEPTION
         WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE ( 'An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM );
             RETURN NULL;
     END GET_MEETING_BY_ID;
-    -- TODO: GET MEETINGS create for type?
+
     PROCEDURE GET_MEETINGS_BY_AUTHOR (
         P_AUTHOR_ID NUMBER,
-        P_MEETINGS OUT SYS_REFCURSOR
+        P_MEETINGS OUT T_MEETING_TY
     ) AS
     BEGIN
-        OPEN P_MEETINGS FOR
-            SELECT *
-            FROM MEETING
-            WHERE AUTHOR_ID = P_AUTHOR_ID;
+        SELECT R_MEETING_TY ( MEETING_ID, MEETING_CONTENT, AUTHOR_ID, EVENT_ID, CREATED_AT ) BULK COLLECT INTO P_MEETINGS
+        FROM MEETING
+        WHERE AUTHOR_ID = P_AUTHOR_ID;
     EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE ( 'No meeting found on-' || P_AUTHOR_ID ||'- AUTHOR_ID ' ||'- ' || SQLCODE || ' -ERROR- ' || SQLERRM );
         WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM);
-            IF P_MEETINGS%ISOPEN THEN
-                CLOSE P_MEETINGS;
-            END IF;
+            DBMS_OUTPUT.PUT_LINE ( 'An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM );
     END GET_MEETINGS_BY_AUTHOR;
--- TODO: GET MEETINGS create for type?
+
     PROCEDURE GET_MEETINGS_BY_EVENT (
         P_EVENT_ID NUMBER,
-        P_MEETINGS OUT SYS_REFCURSOR
+        P_MEETINGS OUT T_MEETING_TY
     ) AS
     BEGIN
-        OPEN P_MEETINGS FOR
-            SELECT *
-            FROM MEETING
-            WHERE EVENT_ID = P_EVENT_ID;
+        SELECT R_MEETING_TY ( MEETING_ID, MEETING_CONTENT, AUTHOR_ID, EVENT_ID, CREATED_AT ) BULK COLLECT INTO P_MEETINGS
+        FROM MEETING
+        WHERE EVENT_ID = P_EVENT_ID;
     EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE ( 'No meeting found on-' || P_EVENT_ID ||'- EVENT_ID ' ||'- ' || SQLCODE || ' -ERROR- ' || SQLERRM );
         WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM);
-            IF P_MEETINGS%ISOPEN THEN
-                CLOSE P_MEETINGS;
-            END IF;
+            DBMS_OUTPUT.PUT_LINE ( 'An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM );
     END GET_MEETINGS_BY_EVENT;
+
+    FUNCTION GET_MEETINGS_BETWEEN (
+        P_START_DATE IN DATE,
+        P_END_DATE IN DATE
+    ) RETURN T_MEETING_TY AS
+        V_RESULT T_MEETING_TY;
+    BEGIN
+        CASE
+            WHEN P_START_DATE < P_END_DATE THEN
+                SELECT R_MEETING_TY ( MEETING_ID, MEETING_CONTENT, AUTHOR_ID, EVENT_ID, CREATED_AT ) BULK COLLECT INTO V_RESULT
+                FROM MEETING
+                WHERE CREATED_AT BETWEEN P_START_DATE AND P_END_DATE;
+            WHEN P_START_DATE > P_END_DATE THEN
+                SELECT R_MEETING_TY ( MEETING_ID, MEETING_CONTENT, AUTHOR_ID, EVENT_ID, CREATED_AT ) BULK COLLECT INTO V_RESULT
+                FROM MEETING
+                WHERE CREATED_AT BETWEEN P_END_DATE AND P_START_DATE;
+        END CASE;
+
+        IF V_RESULT IS NULL THEN
+            RAISE NO_DATA_FOUND;
+        END IF;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE ( 'No meeting found BETWEEN- ' || P_START_DATE ||' - and -' || P_END_DATE ||' - ' || SQLCODE || ' -ERROR- ' || SQLERRM );
+    END GET_MEETINGS_BETWEEN;
 END MEETING_PKG;

@@ -1,0 +1,59 @@
+CREATE OR REPLACE TRIGGER MEMBER_LOG_TRG AFTER
+    INSERT OR UPDATE OR DELETE ON MEMBERS FOR EACH ROW
+DECLARE
+    PRAGMA AUTONOMOUS_TRANSACTION;
+    V_OPERATION PERSONAL_HISTORY.TR_NAME%TYPE;
+    V_MESSAGE   PERSONAL_HISTORY.LOG_MSSG%TYPE;
+BEGIN
+    CASE
+        WHEN INSERTING THEN
+            V_OPERATION := 'SUCCESSFULL_INSERT';
+            V_MESSAGE := 'MEMBER-'||:NEW.MEMBER_ID||'- CREATED: ';
+        WHEN UPDATING THEN
+            V_OPERATION := 'SUCCESSFULL_UPDATE';
+            V_MESSAGE := 'MEMBER-'||:NEW.MEMBER_ID||'- UPDATED';
+        WHEN DELETING THEN
+            V_OPERATION := 'SUCCESSFULL_DELETE';
+            V_MESSAGE := 'MEMBER-'||:OLD.MEMBER_ID||'- DELETED';
+    END CASE;
+
+    INSERT INTO PERSONAL_HISTORY (
+        CHANGER,
+        LOG_MSSG,
+        MODIFIED_TABLE,
+        TR_NAME
+    ) VALUES (
+        USER,
+        V_MESSAGE,
+        'MEMBERS',
+        V_OPERATION
+    );
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE ( 'An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM );
+        CASE
+            WHEN INSERTING THEN
+                V_OPERATION := 'FAIL_INSERT';
+                V_MESSAGE := 'MEMBER-'||:NEW.MEMBER_ID||'- CREATED: ';
+            WHEN UPDATING THEN
+                V_OPERATION := 'FAIL_UPDATE';
+                V_MESSAGE := 'MEMBER-'||:NEW.MEMBER_ID||'- UPDATED';
+            WHEN DELETING THEN
+                V_OPERATION := 'FAIL_DELETE';
+                V_MESSAGE := 'MEMBER-'||:OLD.MEMBER_ID||'- DELETED';
+        END CASE;
+
+        INSERT INTO PERSONAL_HISTORY (
+            CHANGER,
+            LOG_MSSG,
+            MODIFIED_TABLE,
+            TR_NAME
+        ) VALUES (
+            USER,
+            V_MESSAGE,
+            'MEMBERS',
+            V_OPERATION
+        );
+        COMMIT;
+END;

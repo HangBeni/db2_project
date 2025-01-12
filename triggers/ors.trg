@@ -1,0 +1,85 @@
+CREATE OR REPLACE TRIGGER ORS_CH_LEADER_TRG BEFORE
+    INSERT OR UPDATE ON ORS FOR EACH ROW
+DECLARE
+    V_LEADER_COUNT NUMBER;
+BEGIN
+    IF :NEW.LEADER_ID IS NULL THEN
+        NULL;
+    ELSE
+        SELECT COUNT ( * ) INTO V_LEADER_COUNT
+        FROM RANK_PRIVILEGES
+        WHERE MEMBER_ID = :NEW.LEADER_ID AND
+            RANK_DIC_PKG.HAVE_MEMBER_RANK_BY_ID_FUNC (
+                P_MEMBER_ID => :NEW.LEADER_ID /*IN NUMBER*/,
+                P_RANK_ID => RANK_ID /*IN NUMBER*/
+            ) <> 0;
+        IF V_LEADER_COUNT = 0 THEN
+            RAISE EXCEPTIONS_PKG.INVALID_PRIVILEGE_EXC;
+        END IF;
+    END IF;
+EXCEPTION
+    WHEN EXCEPTIONS_PKG.INVALID_PRIVILEGE_EXC THEN
+        DBMS_OUTPUT.PUT_LINE ( 'Invalid privelege to be leader - '|| :NEW.LEADER_ID || ' - MEMBER_ID' );
+END ORS_CH_LEADER_TRG;
+/
+
+CREATE OR REPLACE TRIGGER ORS_LOG AFTER
+    INSERT OR UPDATE OR DELETE ON ORS FOR EACH ROW
+DECLARE
+    PRAGMA AUTONOMOUS_TRANSACTION;
+    V_OPERATION INTERNAL_ASSIGNS_HISTORY.TR_NAME%TYPE;
+    V_MESSAGE   INTERNAL_ASSIGNS_HISTORY.LOG_MSSG%TYPE;
+BEGIN
+    CASE
+        WHEN INSERTING THEN
+            V_OPERATION := 'SUCCESSFULL_INSERT';
+            V_MESSAGE := 'ORS-'||:NEW.ORS_NAME||'- CREATED: '|| :NEW.ORS_ID || ', '|| :NEW.ORS_NAME || ', '|| :NEW.PATROL_ID || ', '|| :NEW.LEADER_ID;
+        WHEN UPDATING THEN
+            V_OPERATION := 'SUCCESSFULL_UPDATE';
+            V_MESSAGE := 'ORS-'||:NEW.ORS_NAME||'- UPDATED: '|| :NEW.ORS_ID || ', '|| :NEW.ORS_NAME || ', '|| :NEW.PATROL_ID || ', '|| :NEW.LEADER_ID;
+            V_MESSAGE :=V_MESSAGE || CHR ( 10 ) ||'OLD_ORS- '|| :OLD.ORS_ID || ', '|| :OLD.ORS_NAME || ', '|| :OLD.PATROL_ID || ', '|| :OLD.LEADER_ID;
+        WHEN DELETING THEN
+            V_OPERATION := 'SUCCESSFULL_DELETE';
+            V_MESSAGE := 'ORS-'||:OLD.ORS_NAME||'- DELETED: '|| :OLD.ORS_ID || ', '|| :OLD.ORS_NAME || ', '|| :OLD.PATROL_ID || ', '|| :OLD.LEADER_ID;
+    END CASE;
+
+    INSERT INTO PERSONAL_HISTORY (
+        CHANGER,
+        LOG_MSSG,
+        MODIFIED_TABLE,
+        TR_NAME
+    ) VALUES (
+        USER,
+        V_MESSAGE,
+        'MEMBERS',
+        V_OPERATION
+    );
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN
+        CASE
+            WHEN INSERTING THEN
+                V_OPERATION := 'FAIL_INSERT';
+                V_MESSAGE := 'ORS-'||:NEW.ORS_NAME||'- CREATED: '|| :NEW.ORS_ID || ', '|| :NEW.ORS_NAME || ', '|| :NEW.PATROL_ID || ', '|| :NEW.LEADER_ID;
+            WHEN UPDATING THEN
+                V_OPERATION := 'FAIL_UPDATE';
+                V_MESSAGE := 'ORS-'||:NEW.ORS_NAME||'- UPDATED: '|| :NEW.ORS_ID || ', '|| :NEW.ORS_NAME || ', '|| :NEW.PATROL_ID || ', '|| :NEW.LEADER_ID;
+                V_MESSAGE :=V_MESSAGE || CHR ( 10 ) ||'OLD_ORS- '|| :OLD.ORS_ID || ', '|| :OLD.ORS_NAME || ', '|| :OLD.PATROL_ID || ', '|| :OLD.LEADER_ID;
+            WHEN DELETING THEN
+                V_OPERATION := 'FAIL_DELETE';
+                V_MESSAGE := 'ORS-'||:OLD.ORS_NAME||'- DELETED: '|| :OLD.ORS_ID || ', '|| :OLD.ORS_NAME || ', '|| :OLD.PATROL_ID || ', '|| :OLD.LEADER_ID;
+        END CASE;
+
+        INSERT INTO PERSONAL_HISTORY (
+            CHANGER,
+            LOG_MSSG,
+            MODIFIED_TABLE,
+            TR_NAME
+        ) VALUES (
+            USER,
+            V_MESSAGE,
+            'MEMBERS',
+            V_OPERATION
+        );
+        COMMIT;
+END ORS_LOG;

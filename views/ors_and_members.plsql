@@ -1,0 +1,22 @@
+CREATE OR REPLACE VIEW ORS_AND_MEMBERS AS
+    SELECT ORS_ID,
+        O.LEADER_ID                                                               AS LEADER_ID,
+        CASE
+            WHEN O.LEADER_ID IS NOT NULL THEN
+                O.LEADER_ID || ','
+            ELSE ''
+        END || LISTAGG ( M.MEMBER_ID, ',' ) WITHIN GROUP ( ORDER BY M.MEMBER_ID ) AS MEMBERS_OF_ORS
+    FROM ORS     O
+        RIGHT OUTER JOIN MEMBERS M
+        USING ( ORS_ID )
+    GROUP BY ORS_ID,
+        LEADER_ID;
+
+/
+
+CREATE OR REPLACE VIEW GROUP_LEADERS_VW AS
+    SELECT O.ORS_ID     AS ORS_ID,
+        RP.MEMBER_ID AS LEADER_ID
+    FROM RANK_PRIVILEGES RP
+        RIGHT OUTER JOIN ORS O
+        ON RP.MEMBER_ID = O.LEADER_ID;
