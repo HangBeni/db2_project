@@ -3330,19 +3330,7 @@ BEGIN
         P_MEMBER =>V_MEMBER
     );
  
-    -- INSERT INTO MEMBERS (
-    --     FIRST_NAME,
-    --     LAST_NAME,
-    --     MOTHERS_NAME,
-    --     MOTHERS_TELEPHONE_NUMBER,
-    --     MOTHERS_EMAIL
-    -- ) VALUES (
-    --  'Benjamin',
-    --  'Hang',
-    --  'Szabó Kata',
-    --  '+363214215',
-    --  'ghdsj@dsa.com'
-    -- );
+ 
     V_MEMBER := MEMBER_TY ( FIRST_NAME => 'Zsombor', LAST_NAME => 'Nagy', MOTHERS_NAME => 'Kovács Anikó', MOTHERS_TELEPHONE_NUMBER => '+363213315', MOTHERS_EMAIL => 'gfdssj@ssa.com', ORS_ID => NULL );
  
     -- Patrol leader Member
@@ -3350,19 +3338,7 @@ BEGIN
         P_MEMBER =>V_MEMBER
     );
  
-    --     INSERT INTO MEMBERS (
-    --     FIRST_NAME,
-    --     LAST_NAME,
-    --     MOTHERS_NAME,
-    --     MOTHERS_TELEPHONE_NUMBER,
-    --     MOTHERS_EMAIL
-    -- ) VALUES (
-    --     'Zsombor',
-    --     'Nagy',
-    --     'Kovács Anikó',
-    --     '+363213315',
-    --     'gfdssj@ssa.com'
-    -- );
+
     SELECT MEMBER_ID INTO V_GROUP_LEADER_ID
     FROM MEMBERS
     WHERE FIRST_NAME = 'Benjamin';
