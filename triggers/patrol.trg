@@ -21,3 +21,64 @@ EXCEPTION
     WHEN EXCEPTIONS_PKG.INVALID_PRIVILEGE_EXC THEN
         DBMS_OUTPUT.PUT_LINE ( 'Invalid privelege to be leader - '|| :NEW.LEADER_ID || ' - MEMBER_ID' );
 END PATROL_CH_LEADER_TRG;
+
+CREATE OR REPLACE TRIGGER PATROL_LOG AFTER
+    INSERT OR UPDATE OR DELETE ON PATROL FOR EACH ROW
+DECLARE
+    PRAGMA AUTONOMOUS_TRANSACTION;
+    V_OPERATION INTERNAL_ASSIGNS_HISTORY.TR_NAME%TYPE;
+    V_MESSAGE   INTERNAL_ASSIGNS_HISTORY.LOG_MSSG%TYPE;
+BEGIN
+    CASE
+        WHEN INSERTING THEN
+            V_OPERATION := 'SUCCESSFULL_INSERT';
+            V_MESSAGE := 'PATROL-'||:NEW.PATROL_NAME||'- CREATED: '|| :NEW.PATROL_ID || ', '|| :NEW.PATROL_NAME || ', '|| :NEW.PATROL_ID || ', '|| :NEW.LEADER_ID;
+        WHEN UPDATING THEN
+            V_OPERATION := 'SUCCESSFULL_UPDATE';
+            V_MESSAGE := 'PATROL-'||:NEW.PATROL_NAME||'- UPDATED: '|| :NEW.PATROL_ID || ', '|| :NEW.PATROL_NAME || ', '|| :NEW.PATROL_ID || ', '|| :NEW.LEADER_ID;
+            V_MESSAGE :=V_MESSAGE || CHR ( 10 ) ||'OLD_PATROL- '|| :OLD.PATROL_ID || ', '|| :OLD.PATROL_NAME || ', '|| :OLD.PATROL_ID || ', '|| :OLD.LEADER_ID;
+        WHEN DELETING THEN
+            V_OPERATION := 'SUCCESSFULL_DELETE';
+            V_MESSAGE := 'PATROL-'||:OLD.PATROL_NAME||'- DELETED: '|| :OLD.PATROL_ID || ', '|| :OLD.PATROL_NAME || ', '|| :OLD.PATROL_ID || ', '|| :OLD.LEADER_ID;
+    END CASE;
+
+    INSERT INTO PERSONAL_HISTORY (
+        CHANGER,
+        LOG_MSSG,
+        MODIFIED_TABLE,
+        TR_NAME
+    ) VALUES (
+        USER,
+        V_MESSAGE,
+        'PATROL',
+        V_OPERATION
+    );
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN
+        CASE
+            WHEN INSERTING THEN
+                V_OPERATION := 'FAIL_INSERT';
+                V_MESSAGE := 'PATROL-'||:NEW.PATROL_NAME||'- CREATED: '|| :NEW.PATROL_ID || ', '|| :NEW.PATROL_NAME || ', '|| :NEW.PATROL_ID || ', '|| :NEW.LEADER_ID;
+            WHEN UPDATING THEN
+                V_OPERATION := 'FAIL_UPDATE';
+                V_MESSAGE := 'PATROL-'||:NEW.PATROL_NAME||'- UPDATED: '|| :NEW.PATROL_ID || ', '|| :NEW.PATROL_NAME || ', '|| :NEW.PATROL_ID || ', '|| :NEW.LEADER_ID;
+                V_MESSAGE :=V_MESSAGE || CHR ( 10 ) ||'OLD_PATROL- '|| :OLD.PATROL_ID || ', '|| :OLD.PATROL_NAME || ', '|| :OLD.PATROL_ID || ', '|| :OLD.LEADER_ID;
+            WHEN DELETING THEN
+                V_OPERATION := 'FAIL_DELETE';
+                V_MESSAGE := 'PATROL-'||:OLD.PATROL_NAME||'- DELETED: '|| :OLD.PATROL_ID || ', '|| :OLD.PATROL_NAME || ', '|| :OLD.PATROL_ID || ', '|| :OLD.LEADER_ID;
+        END CASE;
+
+        INSERT INTO PERSONAL_HISTORY (
+            CHANGER,
+            LOG_MSSG,
+            MODIFIED_TABLE,
+            TR_NAME
+        ) VALUES (
+            USER,
+            V_MESSAGE,
+            'PATROL',
+            V_OPERATION
+        );
+        COMMIT;
+END PATROL_LOG;
