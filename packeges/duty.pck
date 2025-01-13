@@ -73,12 +73,10 @@ CREATE OR REPLACE PACKAGE BODY DUTY_PKG AS
         WHERE
             DUTY_ID = P_DUTY_ID;
         IF SQL%ROWCOUNT = 0 THEN
-            ROLLBACK;
             RAISE_APPLICATION_ERROR ( -22000, 'Duty ID not found' );
         END IF;
     EXCEPTION
         WHEN OTHERS THEN
-            ROLLBACK;
             DBMS_OUTPUT.PUT_LINE ( 'An error was encountered - ' || SQLCODE || ' -ERROR- ' || SQLERRM );
     END DELETE_DUTY;
 
