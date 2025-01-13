@@ -3380,7 +3380,7 @@ BEGIN
         P_MEMBER =>V_MEMBER
     );
  
-    --Assign patrol leader to patrol with procedure, but it will display error
+    --Assign patrol leader to patrol with procedure, but he is the leader but it will not display error because he has the privilege to be the leader
     PATROL_PKG.ASSIGN_LEADER_TO_PATROL (
         P_LEADER_ID => V_PATROL_LEADER_ID /*IN NUMBER*/,
         P_PATROL_ID => V_PATROL_ID /*IN NUMBER*/
