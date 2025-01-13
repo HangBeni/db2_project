@@ -4,9 +4,9 @@
   "settings": {
     "width": 4100,
     "height": 4100,
-    "scrollTop": -2551.8924,
-    "scrollLeft": -903.626,
-    "zoomLevel": 0.79,
+    "scrollTop": -1751,
+    "scrollLeft": -293,
+    "zoomLevel": 0.91,
     "show": 431,
     "database": 4,
     "databaseName": "",
@@ -382,7 +382,7 @@
           "color": ""
         },
         "meta": {
-          "updateAt": 1736755811091,
+          "updateAt": 1736756542949,
           "createAt": 1736755643207
         }
       },
@@ -1898,17 +1898,17 @@
         "name": "ASSIGNMENT_END_DATE",
         "comment": "",
         "dataType": "TIMESTAMP",
-        "default": "ADD_MONTHS",
+        "default": "+ interval 1 year",
         "options": 0,
         "ui": {
           "keys": 0,
           "widthName": 136,
           "widthComment": 60,
           "widthDataType": 65,
-          "widthDefault": 82
+          "widthDefault": 88
         },
         "meta": {
-          "updateAt": 1736755643208,
+          "updateAt": 1736756746488,
           "createAt": 1736755643208
         }
       },
@@ -3205,7 +3205,7 @@
           "columnIds": [
             "i0WWUWkfGFXiY87B2DHTk"
           ],
-          "x": 1188,
+          "x": 1191,
           "y": 2306,
           "direction": 4
         },
@@ -3233,7 +3233,7 @@
           "columnIds": [
             "AIvRDigmnzkbquGS8IVic"
           ],
-          "x": 1422,
+          "x": 1428,
           "y": 2382,
           "direction": 2
         },
@@ -3833,6 +3833,14 @@
       -1,
       1736755843362,
       {}
+    ],
+    "UZtySQ2AkwLOT5mY0K0oN": [
+      "tableColumnEntities",
+      -1,
+      -1,
+      {
+        "default": 1736756746487
+      }
     ]
   }
 }
