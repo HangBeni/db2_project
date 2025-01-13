@@ -51,7 +51,7 @@ BEGIN
     ) VALUES (
         USER,
         V_MESSAGE,
-        'MEMBERS',
+        'ORS',
         V_OPERATION
     );
     COMMIT;
@@ -78,7 +78,7 @@ EXCEPTION
         ) VALUES (
             USER,
             V_MESSAGE,
-            'MEMBERS',
+            'ORS',
             V_OPERATION
         );
         COMMIT;
