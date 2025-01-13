@@ -2815,7 +2815,7 @@ BEGIN
     ) VALUES (
         USER,
         V_MESSAGE,
-        'ADDRESS',
+        'EVENT_DUTIES_ASS',
         V_OPERATION
     );
     COMMIT;
@@ -2838,11 +2838,65 @@ EXCEPTION
         ) VALUES (
             USER,
             V_MESSAGE,
-            'ADDRESS',
+            'EVENT_DUTIES_ASS',
             V_OPERATION
         );
         COMMIT;
 END EVENT_DUTIES_ASS_LOG_TRG;
+
+CREATE OR REPLACE TRIGGER DUTIES_LOG_TRG BEFORE INSERT OR UPDATE OR DELETE ON DUTIES FOR EACH ROW DECLARE PRAGMA AUTONOMOUS_TRANSACTION;
+V_OPERATION PUBLIC_ACTIVITIES_HISTORY.TR_NAME%TYPE;
+V_MESSAGE PUBLIC_ACTIVITIES_HISTORY.LOG_MSSG%TYPE;
+BEGIN
+    CASE
+        WHEN INSERTING THEN
+            V_OPERATION := 'SUCCESSFUL_INSERT';
+            V_MESSAGE := 'DUTY ' || V_OPERATION || ': ' || :NEW.DUTY_ID || ', ' || :NEW.DUTY_NAME || ', ' || :NEW.DUTY_DESCRIPTION;
+        WHEN UPDATING THEN
+            V_OPERATION := 'SUCCESSFUL_UPDATE';
+            V_MESSAGE := 'DUTY ' || V_OPERATION || 'NEW: ' || :NEW.DUTY_ID || ', ' || :NEW.DUTY_NAME || ', ' || :NEW.DUTY_DESCRIPTION;
+            V_MESSAGE := V_MESSAGE ||CHR ( 10 ) || 'OLD: ' || :OLD.DUTY_ID || ', ' || :OLD.DUTY_NAME || ', ' || :OLD.DUTY_DESCRIPTION;
+        WHEN DELETING THEN
+            V_OPERATION := 'SUCCESSFUL_DELETE';
+            V_MESSAGE := 'DUTY ' || V_OPERATION || ': ' || :OLD.DUTY_ID || ', ' || :OLD.DUTY_NAME || ', ' || :OLD.DUTY_DESCRIPTION;
+    END CASE;
+
+    INSERT INTO PUBLIC_ACTIVITIES_HISTORY (
+        CHANGER,
+        LOG_MSSG,
+        MODIFIED_TABLE,
+        TR_NAME
+    ) VALUES (
+        USER,
+        V_MESSAGE,
+        'DUTIES',
+        V_OPERATION
+    );
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN
+        CASE
+            WHEN INSERTING THEN
+                V_OPERATION := 'FAIL_INSERT';
+            WHEN UPDATING THEN
+                V_OPERATION := 'FAIL_UPDATE';
+            WHEN DELETING THEN
+                V_OPERATION := 'FAIL_DELETE';
+        END CASE;
+
+        INSERT INTO PUBLIC_ACTIVITIES_HISTORY (
+            CHANGER,
+            LOG_MSSG,
+            MODIFIED_TABLE,
+            TR_NAME
+        ) VALUES (
+            USER,
+            V_MESSAGE,
+            'DUTIES',
+            V_OPERATION
+        );
+        COMMIT;
+END DUTIES_LOG_TRG;
 /
 
 --TRIGGERS/ORS.TRG
